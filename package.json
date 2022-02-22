@@ -1,0 +1,27 @@
+{
+  "name": "q-a-electron-ts",
+  "version": "1.0.0",
+  "description": "",
+  "main": "./dist/main.js",
+  "dependencies": {
+    "electron": "17.0.1"
+  },
+  "devDependencies": {
+    "typescript": "^4.5.5"
+  },
+  "scripts": {
+    "build": "tsc",
+    "start": "npm run build && npx electron ."
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jirayuth289/Q-A-electron-ts.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/jirayuth289/Q-A-electron-ts/issues"
+  },
+  "homepage": "https://github.com/jirayuth289/Q-A-electron-ts#readme"
+}
