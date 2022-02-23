@@ -16,7 +16,7 @@ class QnAApplication {
 
             this.addHandlerInvoke();
             this.setAppEmitted();
-        })
+        });
     }
 
     private setAppEmitted() {
@@ -25,22 +25,22 @@ class QnAApplication {
             // On macOS it is common for applications and their menu bar
             // to stay active until the user quits explicitly with Cmd + Q
             if (process.platform !== 'darwin') {
-                app.quit()
+                app.quit();
             }
-        })
+        });
 
         app.on('activate', () => {
             // On macOS it's common to re-create a window in the app when the
             // dock icon is clicked and there are no other windows open.
             if (BrowserWindow.getAllWindows().length === 0) {
-                this.createWindow()
+                this.createWindow();
             }
-        })
+        });
     }
 
     private addHandlerInvoke() {
         ipcMain.handle('window:answer', openAnswerWindow);
-        ipcMain.handle('service:question', (ev) => getQuestionService())
+        ipcMain.handle('service:question', () => getQuestionService());
     }
 
     private createWindow() {
@@ -52,10 +52,10 @@ class QnAApplication {
                 nodeIntegration: true,
                 preload: path.join(__dirname, 'preload'),
             }
-        })
+        });
 
         // and load the index.html of the app.
-        this.mainWindow.loadFile(path.join(__dirname, '..', 'index.html'))
+        this.mainWindow.loadFile(path.join(__dirname, '..', 'index.html'));
 
         // Open the DevTools.
         // win.webContents.openDevTools();
@@ -67,4 +67,4 @@ class QnAApplication {
     }
 }
 
-new QnAApplication()
+new QnAApplication();

@@ -1,8 +1,8 @@
-import { contextBridge, ipcRenderer } from 'electron'
+import { contextBridge, ipcRenderer } from 'electron';
 
 contextBridge.exposeInMainWorld('answerApi', {
   handleAnswer: (callback: any) => ipcRenderer.on('show-answer', callback)
-})
+});
 
 // window.addEventListener('DOMContentLoaded', () => {
 //   console.log('DOMContentLoaded');

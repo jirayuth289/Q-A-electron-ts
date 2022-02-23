@@ -16,7 +16,7 @@ export const openAnswerWindow = (event: IpcMainInvokeEvent, questionId: number) 
     });
 
     // answerWindow.webContents.openDevTools();
-    answerWindow.loadFile(path.join(__dirname, '..', '..','..', 'answer.html'));
+    answerWindow.loadFile(path.join(__dirname, '..', '..', '..', 'answer.html'));
 
     //Destroy the BrowserWindow Instance on close
     answerWindow.on('close', function () {
@@ -27,15 +27,10 @@ export const openAnswerWindow = (event: IpcMainInvokeEvent, questionId: number) 
         if (!answerWindow) {
             throw new Error('"answerWindow" is not defined');
         }
-        try {
-            const result: ResponseJson = await getAnswerByQuestionIdService(questionId) as ResponseJson;
-
-            answerWindow.show();
-            answerWindow.webContents.send('show-answer', result.answer);
-        } catch (error) {
-            throw error;
-        }
+        const result: ResponseJson = await getAnswerByQuestionIdService(questionId) as ResponseJson;
+        answerWindow.show();
+        answerWindow.webContents.send('show-answer', result.answer);
     });
 
-    return { questionId }
-}
+    return { questionId };
+};

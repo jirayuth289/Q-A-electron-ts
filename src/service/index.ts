@@ -17,7 +17,7 @@ export const getQuestionService = () => {
             const chunks: any = [];
             response.on('data', (chunk) => {
               chunks.push(chunk);
-            })
+            });
 
             response.on('end', () => {
                 const data = Buffer.concat(chunks).toString();
@@ -29,11 +29,11 @@ export const getQuestionService = () => {
           });
 
           request.on('error', reject);
-          request.end()
+          request.end();
     });
 
     return result;
-}
+};
 
 export const getAnswerByQuestionIdService = (questionId: number) => {
     const result = new Promise((resolve, reject) => {
@@ -52,7 +52,7 @@ export const getAnswerByQuestionIdService = (questionId: number) => {
             const chunks: any = [];
             response.on('data', (chunk) => {
               chunks.push(chunk);
-            })
+            });
 
             response.on('end', () => {
                 const data = Buffer.concat(chunks).toString();
@@ -64,8 +64,8 @@ export const getAnswerByQuestionIdService = (questionId: number) => {
           });
 
           request.on('error', reject);
-          request.end()
+          request.end();
     });
 
     return result;
-}
+};
