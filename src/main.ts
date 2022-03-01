@@ -38,16 +38,38 @@ class QnAApplication {
         });
     }
 
+    private async retrieveQuestion() {
+        try {
+            return await getQuestionService();
+        } catch (error) {
+            const errMsg = error + '';
+
+            if (errMsg.indexOf('net::ERR_CONNECTION_REFUSED') !== -1) {
+                return {
+                    object: 'error',
+                    message: 'the application cannot retrieve questions from the server.'
+                };
+            } else {
+                return {
+                    object: 'error',
+                    message: errMsg
+                };
+            }
+        }
+    }
+
     private addHandlerInvoke() {
         ipcMain.handle('window:answer', openAnswerWindow);
-        ipcMain.handle('service:question', () => getQuestionService());
+        ipcMain.handle('service:question', this.retrieveQuestion);
     }
 
     private createWindow() {
         // Create the browser window.
         this.mainWindow = new BrowserWindow({
+            title: 'main',
             width: 1280,
             height: 760,
+            show: false,
             webPreferences: {
                 nodeIntegration: true,
                 preload: path.join(__dirname, 'preload'),
@@ -63,6 +85,10 @@ class QnAApplication {
         //Quit app when main BrowserWindow Instance is closed
         this.mainWindow.on('closed', function () {
             app.quit();
+        });
+
+        this.mainWindow.once('ready-to-show', () => {
+            this.mainWindow?.show();
         });
     }
 }

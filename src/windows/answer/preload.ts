@@ -1,12 +1,25 @@
-import { contextBridge, ipcRenderer } from 'electron';
+import { ipcRenderer } from 'electron';
+import { ResponseAnswers } from '../../interface';
 
-contextBridge.exposeInMainWorld('answerApi', {
-  handleAnswer: (callback: any) => ipcRenderer.on('show-answer', callback)
+window.addEventListener('DOMContentLoaded', () => {
+  const questionRef = document.getElementById('question') as HTMLElement;
+
+  ipcRenderer.on('loading', (_event: Electron.IpcRendererEvent, loading: boolean) => {
+    const loaderRef = document.getElementById('loader') as HTMLDivElement;
+    if (loading) {
+      loaderRef.style.display = 'block';
+    } else {
+      loaderRef.style.display = 'none';
+    }
+  });
+
+  ipcRenderer.on('show-answer', (_event: Electron.IpcRendererEvent, response: ResponseAnswers) => {
+    const errMsgRef = document.getElementById('error-msg') as HTMLParagraphElement;
+
+    if (response.object === 'answer' && response.row) {
+      questionRef.innerText = response.row.answer;
+    } else {
+      errMsgRef.innerText = response.message;
+    }
+  });
 });
-
-// window.addEventListener('DOMContentLoaded', () => {
-//   console.log('DOMContentLoaded');
-//     ipcRenderer.on('show-answer', (_event, value) => {
-//       console.log('value:', value);       
-//     })
-// })
