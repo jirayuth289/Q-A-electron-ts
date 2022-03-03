@@ -1,16 +1,17 @@
+import 'dotenv/config';
 import { app, BrowserWindow, ipcMain } from 'electron';
 import path from 'path';
+import { ResponseQuestions } from './interface';
 
 import { getQuestionService } from './service';
-import { openAnswerWindow } from './windows/answer';
+import { AnswerWindow } from './windows/answer';
 
 class QnAApplication {
     private mainWindow: BrowserWindow | undefined = undefined;
+    private childWindow: AnswerWindow | undefined = undefined;
+    private childTimeout: NodeJS.Timeout | undefined = undefined;
 
     constructor() {
-        // This method will be called when the Electron has finished
-        // initialization and is ready to create browser windows.
-        // Some APIs can only be used after this event occurs.
         app.whenReady().then(async () => {
             this.createWindow();
 
@@ -38,7 +39,7 @@ class QnAApplication {
         });
     }
 
-    private async retrieveQuestion() {
+    private async retrieveQuestion(): Promise<ResponseQuestions> {
         try {
             return await getQuestionService();
         } catch (error) {
@@ -58,13 +59,36 @@ class QnAApplication {
         }
     }
 
-    private addHandlerInvoke() {
-        ipcMain.handle('window:answer', openAnswerWindow);
+    private addHandlerInvoke(): void {
         ipcMain.handle('service:question', this.retrieveQuestion);
+        ipcMain.handle('window:answer', async (event: Electron.IpcMainInvokeEvent, questionId: number): Promise<void> => {
+            if (this.childWindow) {
+                clearTimeout(this.childTimeout as NodeJS.Timeout);
+                await this.childWindow.showAnswerByQuestionId(questionId);
+            } else {
+                this.childWindow = new AnswerWindow();
+                await this.childWindow.showAnswerByQuestionId(questionId);
+            }
+
+            this.childTimeout = setTimeout(() => {
+                console.log('timeout', this.childTimeout);
+
+                event.sender.send('set-timeout-close-answer-window', this.childWindow?.webContentId);
+            }, 10000);
+
+            this.childWindow.browserWindow.on('close', () => {
+                clearTimeout(this.childTimeout as NodeJS.Timeout);
+                this.childWindow = undefined;
+                this.childTimeout = undefined;
+            });
+        });
+
+        ipcMain.handle('close', () => {
+            this.childWindow?.close();
+        });
     }
 
-    private createWindow() {
-        // Create the browser window.
+    private createWindow(): void {
         this.mainWindow = new BrowserWindow({
             title: 'main',
             width: 1280,
@@ -76,11 +100,7 @@ class QnAApplication {
             }
         });
 
-        // and load the index.html of the app.
         this.mainWindow.loadFile(path.join(__dirname, '..', 'index.html'));
-
-        // Open the DevTools.
-        // win.webContents.openDevTools();
 
         //Quit app when main BrowserWindow Instance is closed
         this.mainWindow.on('closed', function () {

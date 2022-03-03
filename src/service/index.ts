@@ -1,7 +1,17 @@
 import { net } from 'electron';
-import config from '../config';
+import { readFileConfig } from '../config';
+import { ConfigEnv, ResponseAnswers, ResponseQuestions } from '../interface';
 
-export const getQuestionService = () => {
+let config: ConfigEnv;
+
+readFileConfig().then((result) => {
+    config = result as ConfigEnv;
+})
+    .catch(error => {
+        console.log(error);
+    });
+
+export const getQuestionService = (): Promise<ResponseQuestions> => {
     const result = new Promise((resolve, reject) => {
         const request = net.request({
             hostname: config.hostname,
@@ -28,12 +38,12 @@ export const getQuestionService = () => {
 
         request.on('error', reject);
         request.end();
-    });
+    }) as Promise<ResponseQuestions>;
 
     return result;
 };
 
-export const getAnswerByQuestionIdService = (questionId: number) => {
+export const getAnswerByQuestionIdService = (questionId: number): Promise<ResponseAnswers> => {
     const result = new Promise((resolve, reject) => {
         const request = net.request({
             hostname: config.hostname,
@@ -59,7 +69,7 @@ export const getAnswerByQuestionIdService = (questionId: number) => {
 
         request.on('error', reject);
         request.end();
-    });
+    }) as Promise<ResponseAnswers>;
 
     return result;
 };

@@ -22,4 +22,8 @@ window.addEventListener('DOMContentLoaded', () => {
       errMsgRef.innerText = response.message;
     }
   });
+
+  ipcRenderer.on('close-window-immediately', (_event: Electron.IpcRendererEvent) => {
+    ipcRenderer.invoke('close');
+  });
 });

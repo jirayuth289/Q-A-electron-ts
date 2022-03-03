@@ -1,37 +1,29 @@
-import { contextBridge, ipcRenderer } from 'electron';
-import { Question, ResponseQuestions, customEventTarget } from './interface';
-
-contextBridge.exposeInMainWorld('myApi', {
-    openAnswerWindow: async (questionId: number) => {
-        await ipcRenderer.invoke('window:answer', questionId);
-    },
-    getQuestion: () => ipcRenderer.invoke('service:question')
-});
+import { ipcRenderer } from 'electron';
+import { Question, customEventTarget } from './interface';
 
 window.addEventListener('DOMContentLoaded', async () => {
     const tableRef = document.getElementById('question-table') as HTMLTableElement;
 
-    function addRow(question: Question) {
-        // Insert a row at the end of the table
+    function addRow(question: Question): void {
         const newRow = tableRef.insertRow(-1);
 
-        // Insert a cell in the row at index 0
         const newCell = newRow.insertCell(0);
 
-        // Append a div node to the cell
         const newText = document.createElement('div');
         newText.innerText = question.question;
         newText.id = question.id + '';
 
-        newText.addEventListener('click', (ev: MouseEvent) => {
+        newText.addEventListener('click', async (ev: MouseEvent) => {
             const target = ev.target as customEventTarget;
-            ipcRenderer.invoke('window:answer', target.id);
+            await ipcRenderer.invoke('window:answer', target.id);
+
+
         });
 
         newCell.appendChild(newText);
     }
 
-    function addNoDataRow() {
+    function addNoDataRow(): void {
         const newRow = tableRef.insertRow(-1);
 
         const newCell = newRow.insertCell(0);
@@ -46,7 +38,7 @@ window.addEventListener('DOMContentLoaded', async () => {
     const loaderRef = document.getElementById('loader') as HTMLDivElement;
     try {
         loaderRef.style.display = 'block';
-        const response = await ipcRenderer.invoke('service:question') as ResponseQuestions;
+        const response = await ipcRenderer.invoke('service:question');
 
         if (response.object === 'question' && response.rows) {
             response.rows.forEach((question: Question) => {
@@ -54,7 +46,7 @@ window.addEventListener('DOMContentLoaded', async () => {
             });
         } else {
             addNoDataRow();
-            errMsgRef.innerText = response.message;
+            errMsgRef.innerText = response.message as string;
         }
 
         loaderRef.style.display = 'none';
@@ -64,4 +56,7 @@ window.addEventListener('DOMContentLoaded', async () => {
         loaderRef.style.display = 'none';
     }
 
+    ipcRenderer.on('set-timeout-close-answer-window', (event: Electron.IpcRendererEvent, windowId: number) => {
+        event.sender.sendTo(windowId, 'close-window-immediately');
+    });
 });
