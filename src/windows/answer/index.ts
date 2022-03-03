@@ -1,74 +1,78 @@
 import { BrowserWindow } from 'electron';
 import path from 'path';
-import { ResponseAnswers } from '../../interface';
 
 import { getAnswerByQuestionIdService } from '../../service';
 
-const forceSingleChildWindown = () => {
-    if (BrowserWindow.getAllWindows().length > 1) {
-        BrowserWindow.getAllWindows().forEach((window: Electron.BrowserWindow) => {
-            if (window.id !== 1) {
-                window.close();
-            }
-        });
+const updateData = async (questionId: number, answerWindow: Electron.BrowserWindow): Promise<void> => {
+    try {
+        answerWindow.webContents.send('loading', true);
+        const result = await getAnswerByQuestionIdService(questionId);
+        answerWindow.title = 'answer-window';
+
+        answerWindow.webContents.send('loading', false);
+        answerWindow.webContents.send('show-answer', result);
+    } catch (error) {
+        answerWindow.webContents.send('loading', false);
+        const errMsg = error + '';
+
+        if (errMsg.indexOf('net::ERR_CONNECTION_REFUSED') !== -1) {
+            answerWindow.webContents.send('show-answer', {
+                object: 'error',
+                message: 'the application cannot retrieve an answer from the server.'
+            });
+        } else {
+            answerWindow.webContents.send('show-answer', {
+                object: 'error',
+                message: errMsg
+            });
+        }
     }
 };
 
-export const openAnswerWindow = (event: Electron.IpcMainInvokeEvent, questionId: number) => {
-    forceSingleChildWindown();
+class AnswerWindow {
+    private answerWindow: BrowserWindow | undefined = undefined;
 
-    let answerWindow: BrowserWindow | null = new BrowserWindow({
-        width: 800,
-        height: 600,
-        show: false,
-        webPreferences: {
-            nodeIntegration: true,
-            preload: path.join(__dirname, 'preload.js'),
-        },
-    });
-    // answerWindow.webContents.openDevTools();
-    answerWindow.loadFile(path.join(__dirname, '..', '..', '..', 'answer.html'));
+    constructor() {
+        this.createWindow();
+    }
 
-    //Destroy the BrowserWindow Instance on close
-    answerWindow.on('close', function () {
-        answerWindow = null;
-    });
+    get webContentId(): number {
+        return this.answerWindow?.webContents.id as number;
+    }
 
-    answerWindow.webContents.on('did-finish-load', async () => {
-        if (!answerWindow) {
-            throw new Error('the window of answer is not defined');
-        }
+    get browserWindow(): BrowserWindow {
+        return this.answerWindow as BrowserWindow;
+    }
 
-        answerWindow.show();
+    public async showAnswerByQuestionId(questionId: number) {
+        this.answerWindow?.show();
 
-        try {
-            answerWindow.webContents.send('loading', true);
-            const result = await getAnswerByQuestionIdService(questionId) as ResponseAnswers;
-            answerWindow.title = result.row.answer;
+        await updateData(questionId, this.answerWindow as BrowserWindow);
+    }
 
-            answerWindow.webContents.send('loading', false);
-            answerWindow.webContents.send('show-answer', result);
+    public close() {
+        this.answerWindow?.close();
+    }
 
-            setTimeout(()=> {
-                answerWindow?.close();
-            }, 10000);
-        } catch (error) {
-            answerWindow.webContents.send('loading', false);
-            const errMsg = error + '';
+    private createWindow() {
+        this.answerWindow = new BrowserWindow({
+            width: 800,
+            height: 600,
+            show: false,
+            webPreferences: {
+                nodeIntegration: true,
+                preload: path.join(__dirname, 'preload.js'),
+            },
+        });
 
-            if (errMsg.indexOf('net::ERR_CONNECTION_REFUSED') !== -1) {
-                answerWindow.webContents.send('show-answer', {
-                    object: 'error',
-                    message: 'the application cannot retrieve an answer from the server.'
-                });
-            } else {
-                answerWindow.webContents.send('show-answer', {
-                    object: 'error',
-                    message: errMsg
-                });
+        this.answerWindow.loadFile(path.join(__dirname, '..', '..', '..', 'answer.html'));
+
+        this.answerWindow.webContents.on('did-finish-load', async () => {
+            if (!this.answerWindow) {
+                throw new Error('the window of answer is not defined');
             }
-        }
-    });
+        });
+    }
+}
 
-    return { questionId };
-};
+export { AnswerWindow };

@@ -1,8 +1,8 @@
 type typeQuestion = 'question' | 'error';
 export interface ResponseQuestions {
     object: typeQuestion,
-    message: string,
-    rows: Question[]
+    message?: string,
+    rows?: Question[]
 }
 
 export interface Question {
@@ -24,4 +24,9 @@ export interface Answer {
 
 export interface customEventTarget extends EventTarget {
     id: string;
+}
+
+export interface ConfigEnv {
+    hostname: string;
+    port: number;
 }
