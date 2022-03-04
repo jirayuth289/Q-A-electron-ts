@@ -3,7 +3,7 @@ import path from 'path';
 
 import { getAnswerByQuestionIdService } from '../../service';
 
-class AnswerWindow {
+export class AnswerWindow {
     private answerWindow: BrowserWindow | undefined = undefined;
 
     constructor() {
@@ -48,8 +48,6 @@ class AnswerWindow {
         });
     }
 }
-
-export { AnswerWindow };
 
 const updateData = async (questionId: number, answerWindow: Electron.BrowserWindow): Promise<void> => {
     try {
