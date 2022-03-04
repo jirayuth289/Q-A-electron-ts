@@ -71,8 +71,6 @@ class QnAApplication {
             }
 
             this.childTimeout = setTimeout(() => {
-                console.log('timeout', this.childTimeout);
-
                 event.sender.send('set-timeout-close-answer-window', this.childWindow?.webContentId);
             }, 10000);
 

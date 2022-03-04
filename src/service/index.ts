@@ -2,20 +2,29 @@ import { net } from 'electron';
 import { readFileConfig } from '../config';
 import { ConfigEnv, ResponseAnswers, ResponseQuestions } from '../interface';
 
-let config: ConfigEnv;
+let config: ConfigEnv | undefined;
+const configDefault: ConfigEnv = {
+    hostname: 'localhost',
+    port: 9000
+};
 
 readFileConfig().then((result) => {
-    config = result as ConfigEnv;
+    if (result) {
+        config = result;
+    } else {
+        config = configDefault;
+    }
 })
     .catch(error => {
+        config = configDefault;
         console.log(error);
     });
 
 export const getQuestionService = (): Promise<ResponseQuestions> => {
     const result = new Promise((resolve, reject) => {
         const request = net.request({
-            hostname: config.hostname,
-            port: config.port,
+            hostname: config?.hostname,
+            port: config?.port,
             path: "/question",
             method: 'get'
         });
@@ -46,8 +55,8 @@ export const getQuestionService = (): Promise<ResponseQuestions> => {
 export const getAnswerByQuestionIdService = (questionId: number): Promise<ResponseAnswers> => {
     const result = new Promise((resolve, reject) => {
         const request = net.request({
-            hostname: config.hostname,
-            port: config.port,
+            hostname: config?.hostname,
+            port: config?.port,
             path: `/question/${questionId}/answer`,
             method: 'get'
         });
