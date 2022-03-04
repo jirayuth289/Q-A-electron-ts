@@ -2,21 +2,12 @@ import { net } from 'electron';
 import { readFileConfig } from '../config';
 import { ConfigEnv, ResponseAnswers, ResponseQuestions } from '../interface';
 
-let config: ConfigEnv | undefined;
-const configDefault: ConfigEnv = {
-    hostname: 'localhost',
-    port: 9000
-};
+let config: ConfigEnv;
 
 readFileConfig().then((result) => {
-    if (result) {
-        config = result;
-    } else {
-        config = configDefault;
-    }
+    config = result;
 })
     .catch(error => {
-        config = configDefault;
         console.log(error);
     });
 
